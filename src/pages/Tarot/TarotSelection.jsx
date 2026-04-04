@@ -117,10 +117,19 @@ export default function TarotSelection({ step }) {
             transform: isHolding ? 'scale(0.96)' : 'scale(1)', 
             transition: 'all 0.2s', 
             boxShadow: isHolding ? '0 0 20px var(--accent-glow)' : 'none',
-            border: `1px solid ${isHolding ? 'var(--accent)' : 'var(--border)'}`
+            border: `1px solid ${isHolding ? 'var(--accent)' : 'var(--border)'}`,
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            WebkitTouchCallout: 'none'
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '40px', color: isHolding ? 'var(--accent)' : 'var(--text-muted)', transition: 'color 0.2s' }}>fingerprint</span>
+          <span className="material-symbols-outlined" style={{ 
+            fontSize: '40px', 
+            color: isHolding ? 'var(--accent)' : 'var(--text-muted)', 
+            transition: 'color 0.2s',
+            userSelect: 'none',
+            WebkitUserSelect: 'none'
+          }}>fingerprint</span>
         </div>
       </div>
 
