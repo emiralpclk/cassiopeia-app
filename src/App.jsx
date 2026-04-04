@@ -6,7 +6,7 @@ import './index.css';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/cassiopeia-app">
       <AppProvider>
         <ErrorBoundary>
           <AppContent />
