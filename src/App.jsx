@@ -5,7 +5,7 @@ import AppContent from './AppContent';
 import './index.css';
 
 export default function App() {
-  const basename = import.meta.env.DEV ? "/" : "/cassiopeia-app";
+  const basename = import.meta.env.DEV ? "/" : "/cassiopeia2-app";
   
   return (
     <BrowserRouter basename={basename}>
