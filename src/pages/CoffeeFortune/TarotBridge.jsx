@@ -86,8 +86,8 @@ export default function TarotBridge() {
                 onClick={() => handleCardClick(i)}
                 disabled={revealedIndices.includes(i)}
               >
-                <div className="card-back-face">
-                  <div className="card-back-pattern"><span>✦</span></div>
+                <div className="card-back-face tarot-card-modern">
+                  <div className="tarot-card-shimmer"></div>
                 </div>
                 <div className="card-front-face">
                   {card?.img ? (

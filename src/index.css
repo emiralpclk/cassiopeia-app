@@ -18,9 +18,9 @@
   --bg-input: #0b0c13;
   --border: rgba(255,255,255,0.1);
   --border-focus: rgba(226,232,240,0.3);
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
   --accent: #e2e8f0; /* Ethereal Moonstone / Silver */
   --accent-soft: rgba(226,232,240,0.08);
   --accent-glow: rgba(226,232,240,0.2);
@@ -74,9 +74,9 @@ body {
 
 /* Animations */
 @keyframes breathing-aura {
-  0% { box-shadow: 0 0 20px var(--accent-glow); transform: scale(1); }
-  50% { box-shadow: 0 0 50px var(--accent-glow); transform: scale(1.02); }
-  100% { box-shadow: 0 0 20px var(--accent-glow); transform: scale(1); }
+  0% { box-shadow: 0 0 25px var(--accent-glow); transform: scale(1); opacity: 0.9; }
+  50% { box-shadow: 0 0 100px var(--accent-glow); transform: scale(1.08); opacity: 1; }
+  100% { box-shadow: 0 0 25px var(--accent-glow); transform: scale(1); opacity: 0.9; }
 }
 
 @keyframes float {
@@ -208,7 +208,7 @@ body {
   max-width: 430px;
   margin: 0 auto;
   position: relative;
-  background-image: linear-gradient(rgba(5, 5, 8, 0.80), rgba(5, 5, 8, 0.90)), url('/bg-mystic.jpg');
+  background-image: linear-gradient(rgba(5, 5, 8, 0.40), rgba(5, 5, 8, 0.40)), url('/bg-mystic.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -2030,25 +2030,144 @@ body {
 }
 
 /* Tarot Spread Grid */
+.tarot-spread-container {
+  width: 100%;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 40px;
+}
+
 .tarot-spread {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  max-width: 400px;
-  padding: 0 10px;
+  max-width: 480px;
+  padding: 0 20px;
   margin: 0 auto;
 }
 
+/* ============================================================
+   Tarot Card - Modern Mystic (Celestial Glass)
+   ============================================================ */
+
+.tarot-card-modern {
+  position: relative;
+  background-color: #0a0a0f;
+  background-image: var(--tarot-back-mockup);
+  background-size: cover;
+  background-position: center;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid rgba(226, 232, 240, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+}
+
+/* Nebula Overlay for extra depth */
+.tarot-card-modern::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(10, 10, 15, 0.4) 100%);
+  pointer-events: none;
+}
+
+/* Top & Bottom Decorations */
+.tarot-card-decoration {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  color: rgba(226, 232, 240, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.tarot-card-decoration.top {
+  top: 15%;
+  animation: float-slow 6s infinite ease-in-out;
+}
+
+.tarot-card-decoration.bottom {
+  bottom: 15%;
+  animation: float-slow 6s infinite ease-in-out reverse;
+}
+
+.tarot-card-decoration .material-symbols-outlined {
+  font-size: 20px;
+  opacity: 0.6;
+}
+
+/* Animations */
+@keyframes float-slow {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, -5px); }
+}
+
+/* Shimmer Effect */
+.tarot-card-shimmer {
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+  transform: skewX(-25deg);
+  animation: shimmer-sweep 4s infinite linear;
+  pointer-events: none;
+  z-index: 4;
+}
+
+@keyframes shimmer-sweep {
+  0% { left: -150%; }
+  100% { left: 250%; }
+}
+
+@keyframes nebula-pulse {
+  0% { transform: scale(1) translate(0, 0); opacity: 0.3; }
+  100% { transform: scale(1.2) translate(5%, 5%); opacity: 0.7; }
+}
+
+@keyframes core-breathe {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px var(--accent-glow)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 25px var(--accent-glow)); }
+}
+
+@keyframes shimmer-sweep {
+  0% { left: -150%; }
+  100% { left: 250%; }
+}
+
+@keyframes pattern-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Bridge Integration */
 .tarot-card-back {
+  width: 100%;
   aspect-ratio: 2/3;
   border-radius: var(--radius-sm);
   cursor: pointer;
   position: relative;
-  perspective: 600px;
+  perspective: 1000px;
   border: none;
   background: none;
   padding: 0;
+  display: block;
 }
 
 .card-back-face,
@@ -2057,21 +2176,19 @@ body {
   inset: 0;
   border-radius: var(--radius-sm);
   backface-visibility: hidden;
-  transition: transform 0.6s;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 
 .card-back-face {
-  background: linear-gradient(135deg, #0c120c, #1a241a);
-  border: 1px solid rgba(112, 138, 110, 0.15);
+  /* Applying the Modern Mystic design */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.card-back-pattern {
-  color: rgba(112, 138, 110, 0.2);
-  font-size: 24px;
 }
 
 .card-front-face {
@@ -2373,12 +2490,146 @@ body {
   font-size: 15px;
 }
 
-.synthesis-text-container {
-  padding: 24px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin: 0 4px;
+.tarot-shuffling-deck {
+  position: relative;
+  width: 200px;
+  height: 250px;
+  margin: 40px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* BASE STYLES FOR RITUAL ELEMENTS */
+.ritual-card-fast-1, .ritual-card-fast-2, .ritual-card-fast-3 {
+  position: absolute !important;
+  width: 80px;
+  height: 130px;
+  z-index: 10;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 25px var(--accent-glow);
+}
+
+.ritual-card-slow-1, .ritual-card-slow-2, .ritual-card-slow-3 {
+  position: absolute !important;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  z-index: 10;
+}
+
+.mystic-orb.elegant {
+  background: radial-gradient(circle at 30% 30%, #FFFFFF, #BDBDBD);
+  box-shadow: 
+    0 0 10px rgba(255, 255, 255, 0.9), /* Sharp Core */
+    0 0 25px rgba(200, 210, 255, 0.6), /* Celestial Glow */
+    inset 0 0 5px rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(2px);
+  position: relative;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Energy Ripple (Expanding Halo) */
+.mystic-orb.elegant::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 100%; height: 100%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  animation: orb-ripple 6s infinite ease-in-out;
+  pointer-events: none;
+}
+
+/* Star-Shimmer (Internal Specular) */
+.mystic-orb.elegant::after {
+  content: '';
+  position: absolute;
+  top: 15%; left: 15%;
+  width: 30%; height: 30%;
+  background: white;
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: internal-twinkle 3s infinite ease-in-out;
+}
+
+@keyframes orb-ripple {
+  0%, 33%, 66%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+  5%, 38%, 71% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  15%, 48%, 81% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+}
+
+@keyframes internal-twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* FAST SHUFFLE (During Touch/Hold) */
+.ritual-card-fast-1 { animation: triangle-rotate-fast-1 0.7s infinite linear; }
+.ritual-card-fast-2 { animation: triangle-rotate-fast-2 0.7s infinite linear; }
+.ritual-card-fast-3 { animation: triangle-rotate-fast-3 0.7s infinite linear; }
+
+@keyframes triangle-rotate-fast-1 {
+  0%, 100% { transform: translate(-85px, -60px) rotate(-10deg); z-index: 10; }
+  33% { transform: translate(85px, -60px) rotate(10deg); z-index: 5; }
+  66% { transform: translate(0, 80px) rotate(0deg) scale(1.1); z-index: 20; }
+}
+
+@keyframes triangle-rotate-fast-2 {
+  0%, 100% { transform: translate(85px, -60px) rotate(10deg); z-index: 5; }
+  33% { transform: translate(0, 80px) rotate(0deg) scale(1.1); z-index: 20; }
+  66% { transform: translate(-85px, -60px) rotate(-10deg); z-index: 10; }
+}
+
+@keyframes triangle-rotate-fast-3 {
+  0%, 100% { transform: translate(0, 80px) rotate(0deg) scale(1.1); z-index: 20; }
+  33% { transform: translate(-85px, -60px) rotate(-10deg); z-index: 10; }
+  66% { transform: translate(85px, -60px) rotate(10deg); z-index: 5; }
+}
+
+/* SLOW RITUAL (During Interpretation) */
+.ritual-card-slow-1 { animation: triangle-rotate-slow-1 6s infinite ease-in-out; }
+.ritual-card-slow-2 { animation: triangle-rotate-slow-2 6s infinite ease-in-out; }
+.ritual-card-slow-3 { animation: triangle-rotate-slow-3 6s infinite ease-in-out; }
+
+@keyframes triangle-rotate-slow-1 {
+  0%, 100% { transform: translate(-80px, -60px) scale(1.4); z-index: 20; box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); } /* Outer Top Left */
+  16% { transform: translate(0, 0) scale(0.6); z-index: 10; box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }      /* Inner Center */
+  33% { transform: translate(80px, -60px) scale(1.4); z-index: 20; box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }  /* Outer Top Right */
+  50% { transform: translate(0, 0) scale(0.6); z-index: 10; box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }      /* Inner Center */
+  66% { transform: translate(0, 80px) scale(1.4); z-index: 20; box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }    /* Outer Bottom */
+  83% { transform: translate(0, 0) scale(0.6); z-index: 10; box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }      /* Inner Center */
+}
+
+@keyframes triangle-rotate-slow-2 {
+  0%, 100% { transform: translate(80px, -60px) scale(1.4); z-index: 20; box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }
+  16% { transform: translate(0, 0) scale(0.6); z-index: 10; }
+  33% { transform: translate(0, 80px) scale(1.4); z-index: 20; box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }
+  50% { transform: translate(0, 0) scale(0.6); z-index: 10; }
+  66% { transform: translate(-80px, -60px) scale(1.4); z-index: 20; box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }
+  83% { transform: translate(0, 0) scale(0.6); z-index: 10; }
+}
+
+@keyframes triangle-rotate-slow-3 {
+  0%, 100% { transform: translate(0, 80px) scale(1.4); z-index: 20; box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }
+  16% { transform: translate(0, 0) scale(0.6); z-index: 10; }
+  33% { transform: translate(-80px, -60px) scale(1.4); z-index: 20; box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }
+  50% { transform: translate(0, 0) scale(0.6); z-index: 10; }
+  66% { transform: translate(80px, -60px) scale(1.4); z-index: 20; box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }
+  83% { transform: translate(0, 0) scale(0.6); z-index: 10; }
+}
+
+.emerald-glow-text {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px var(--accent-glow);
 }
 
 .synthesis-text {
@@ -2402,6 +2653,36 @@ body {
   color: var(--positive);
   font-size: 14px;
   padding: 16px;
+}
+
+/* Tarot History Specifics */
+.tarot-history-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.history-detail-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  animation: slideUp 0.4s ease-out;
+}
+
+.emerald-seal-mini p {
+  line-height: 1.6;
+  margin: 0;
+}
+
+.card-mini-name {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* ============================================================
@@ -3183,14 +3464,19 @@ body {
   transform: translate(-50%, -50%);
   width: 150%;
   height: 150%;
-  background: radial-gradient(circle, rgba(80, 200, 120, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(80, 200, 120, 0.4) 0%, transparent 70%);
   pointer-events: none;
-  animation: aura-pulse 4s infinite ease-in-out;
+  animation: aura-pulse 3s infinite ease-in-out;
+  z-index: 0;
+}
+
+.emerald-seal, .emerald-seal-mini {
+  animation: breathing-aura 3s infinite ease-in-out;
 }
 
 @keyframes aura-pulse {
-  0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.1); }
+  0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.15); filter: blur(4px); }
 }
 
 @keyframes shine {
@@ -3295,7 +3581,8 @@ body {
   color: var(--text-primary);
   margin-bottom: 4px;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

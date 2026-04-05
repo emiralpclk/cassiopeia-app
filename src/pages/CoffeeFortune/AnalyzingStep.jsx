@@ -2,45 +2,56 @@ import { useEffect, useRef } from 'react';
 import { useAppState, useAppDispatch } from '../../context/AppContext';
 import { callGemini } from '../../services/gemini';
 import { buildCoffeeGeneralPrompt, buildCoffeeSymbolsPrompt } from '../../utils/prompts';
+import { getMockCoffeeResult } from '../../services/mockData';
 import OracleLoading from '../../components/OracleLoading';
 
 function AnalyzingStep() {
-  const { currentFortune, apiKey, user } = useAppState();
+  const { currentFortune, apiKey, user, isTestMode } = useAppState();
   const dispatch = useAppDispatch();
   const hasRequested = useRef(false);
 
   useEffect(() => {
-    if (currentFortune.images?.length > 0 && apiKey && !hasRequested.current) {
+    // In test mode, we don't need apiKey
+    if (currentFortune.images?.length > 0 && (apiKey || isTestMode) && !hasRequested.current) {
       hasRequested.current = true;
       runAnalysis();
     }
-  }, []);
+  }, [apiKey, isTestMode, currentFortune.images]);
 
   async function runAnalysis() {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
-      const generalPrompt = buildCoffeeGeneralPrompt(
-        currentFortune.intent,
-        user?.zodiac || 'bilinmiyor',
-        user?.ageRange || 'bilinmiyor',
-        user?.relationshipStatus || 'bilinmiyor'
-      );
-
-      const symbolsPrompt = buildCoffeeSymbolsPrompt();
-
+      let generalResult, symbolsResult;
       const startTime = Date.now();
 
-      // Parallel fetch for BOTH general and symbols
-      const [generalResult, symbolsResult] = await Promise.all([
-        callGemini(apiKey, generalPrompt, { images: currentFortune.images }),
-        callGemini(apiKey, symbolsPrompt, { images: currentFortune.images, jsonMode: true })
-      ]);
-      
-      // Minimum 10 seconds of mystical waiting
-      const elapsed = Date.now() - startTime;
-      if (elapsed < 10000) {
-        await new Promise(resolve => setTimeout(resolve, 10000 - elapsed));
+      if (isTestMode) {
+        // Simüle edilmiş mistik bekleme (1.5 sn)
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        const mock = getMockCoffeeResult();
+        generalResult = mock.general;
+        symbolsResult = { semboller: mock.semboller };
+      } else {
+        const generalPrompt = buildCoffeeGeneralPrompt(
+          currentFortune.intent,
+          user?.zodiac || 'bilinmiyor',
+          user?.ageRange || 'bilinmiyor',
+          user?.relationshipStatus || 'bilinmiyor'
+        );
+
+        const symbolsPrompt = buildCoffeeSymbolsPrompt();
+
+        // Parallel fetch for BOTH general and symbols
+        [generalResult, symbolsResult] = await Promise.all([
+          callGemini(apiKey, generalPrompt, { images: currentFortune.images }),
+          callGemini(apiKey, symbolsPrompt, { images: currentFortune.images, jsonMode: true })
+        ]);
+        
+        // Minimum 10 seconds of mystical waiting only for real API
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 10000) {
+          await new Promise(resolve => setTimeout(resolve, 10000 - elapsed));
+        }
       }
 
       // Store symbols first in tabData
@@ -61,7 +72,6 @@ function AnalyzingStep() {
           : (err.message || 'Analiz sırasında bir hata oluştu'),
       });
     } finally {
-      // Her halükarda loading kapatılır!
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   }

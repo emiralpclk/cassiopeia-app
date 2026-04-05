@@ -114,9 +114,9 @@ export default function TarotSelection({ step }) {
             alignItems: 'center', 
             justifyContent: 'center', 
             cursor: 'pointer', 
-            transform: isHolding ? 'scale(0.96)' : 'scale(1)', 
+            transform: isHolding ? undefined : 'scale(1)', 
             transition: 'all 0.2s', 
-            boxShadow: isHolding ? '0 0 20px var(--accent-glow)' : 'none',
+            boxShadow: isHolding ? undefined : 'none',
             border: `1px solid ${isHolding ? 'var(--accent)' : 'var(--border)'}`,
             userSelect: 'none',
             WebkitUserSelect: 'none',
@@ -134,59 +134,37 @@ export default function TarotSelection({ step }) {
       </div>
 
       {/* Bottom Shuffling Deck */}
-      <div style={{ 
-          width: '200px', 
-          height: '140px', 
-          position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop: 'auto',
-          marginBottom: '20px'
-        }}
-      >
+      <div className="tarot-shuffling-deck" style={{ marginTop: '40px', marginBottom: '40px' }}>
         {/* Left Card */}
-        <div style={{
+        <div className={`tarot-card-modern ${isHolding ? 'ritual-card-fast-1' : ''}`} style={{
           position: 'absolute',
           width: '80px', height: '130px',
-          border: '1px dashed var(--accent)',
-          borderRadius: '10px',
-          background: 'var(--bg-elevated)',
-          transform: isHolding ? 'none' : 'rotate(-12deg) translateX(-35px)',
-          animation: isHolding ? 'shuffle-left 0.8s infinite linear' : 'none',
-          boxShadow: isHolding ? '0 0 15px var(--accent-glow)' : 'none',
+          transform: isHolding ? undefined : 'rotate(-12deg) translateX(-35px)',
           transition: 'transform 0.4s ease'
-        }}></div>
+        }}>
+          <div className="tarot-card-shimmer"></div>
+        </div>
         
         {/* Center Card */}
-        <div style={{
+        <div className={`tarot-card-modern ${isHolding ? 'ritual-card-fast-2' : ''}`} style={{
           position: 'absolute',
           width: '80px', height: '130px',
-          border: '1px solid var(--text-primary)',
-          borderRadius: '10px',
-          background: 'var(--bg-card)',
-          transform: 'rotate(0deg)',
-          animation: isHolding ? 'shuffle-center 1.1s infinite ease-in-out' : 'none',
+          transform: isHolding ? undefined : 'rotate(0deg)',
           zIndex: 2,
-          boxShadow: isHolding ? '0 0 20px var(--accent-glow)' : '0 8px 24px rgba(0,0,0,0.5)',
           transition: 'transform 0.4s ease',
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--accent)', opacity: isHolding ? 1 : 0.2, transition: 'opacity 0.2s', animation: isHolding ? 'spin 1.5s infinite linear' : 'none' }}>cyclone</span>
+          <div className="tarot-card-shimmer"></div>
         </div>
 
         {/* Right Card */}
-        <div style={{
+        <div className={`tarot-card-modern ${isHolding ? 'ritual-card-fast-3' : ''}`} style={{
           position: 'absolute',
           width: '80px', height: '130px',
-          border: '1px dashed var(--accent)',
-          borderRadius: '10px',
-          background: 'var(--bg-elevated)',
-          transform: isHolding ? 'none' : 'rotate(12deg) translateX(35px)',
-          animation: isHolding ? 'shuffle-right 0.9s infinite linear' : 'none',
-          boxShadow: isHolding ? '0 0 15px var(--accent-glow)' : 'none',
+          transform: isHolding ? undefined : 'rotate(12deg) translateX(35px)',
           transition: 'transform 0.4s ease'
-        }}></div>
+        }}>
+          <div className="tarot-card-shimmer"></div>
+        </div>
       </div>
     </div>
   );
@@ -214,37 +192,31 @@ export default function TarotSelection({ step }) {
       }}>
         {/* Simplified Fan for 3-card spread */}
         {TAROT_DECK.map((card, index) => {
-          const isSelected = selectedCards.find(c => c.id === card.id);
+          const selectedIndex = selectedCards.findIndex(c => c.id === card.id);
+          const isSelected = selectedIndex !== -1;
+          const xMove = selectedIndex === 0 ? -120 : selectedIndex === 2 ? 120 : 0;
           const angle = (index - 10.5) * 6; // Fan out 22 cards tighter
 
           return (
             <div 
               key={card.id}
+              className="tarot-card-modern"
               onClick={() => handleCardSelect(card)}
               style={{
                 position: 'absolute',
                 width: '60px', 
                 height: '95px',
-                background: 'linear-gradient(135deg, var(--bg-elevated) 0%, rgba(30,40,50,1) 100%)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                borderRadius: '6px',
                 cursor: isSelected ? 'default' : 'pointer',
                 transformOrigin: '50% 280px', 
-                transform: `translateX(-50%) rotate(${angle}deg) ${isSelected ? 'translateY(100px) scale(0)' : ''}`, 
-                transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                transform: `translateX(calc(-50% + ${isSelected ? xMove : 0}px)) rotate(${isSelected ? 0 : angle}deg) ${isSelected ? 'translateY(400px) scale(0)' : ''}`, 
+                transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
                 opacity: isSelected ? 0 : 1,
                 zIndex: 22 - index,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 left: '50%',
                 top: '20px',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.4), inset 0 0 10px rgba(0,0,0,0.5)'
               }}
             >
-              <div style={{ width: '80%', height: '80%', border: '1px dashed rgba(255,255,255,0.2)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span className="material-symbols-outlined" style={{ opacity: 0.15, fontSize: '20px' }}>flare</span>
-              </div>
+              <div className="tarot-card-shimmer"></div>
             </div>
           );
         })}
@@ -271,19 +243,20 @@ export default function TarotSelection({ step }) {
               gap: '12px'
             }}>
               {/* Card Container */}
-              <div style={{
+              <div className={card ? "" : "tarot-card-modern"} style={{
                 width: '100px',
                 height: '160px',
-                border: `1px dashed ${card ? 'var(--accent)' : 'var(--border)'}`,
                 borderRadius: '10px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 position: 'relative',
-                background: card ? 'transparent' : 'rgba(255,255,255,0.02)',
                 boxShadow: card ? '0 8px 24px rgba(0,0,0,0.3)' : 'none',
                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                overflow: 'hidden',
+                border: card ? '1px solid var(--accent)' : '1px solid var(--border)',
               }}>
+                {!card && <div className="tarot-card-shimmer"></div>}
                 {card ? (
                   <img src={card.img} alt={card.nameTr} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '10px' }} className="fade-in" />
                 ) : (

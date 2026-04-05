@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
-import { useAppDispatch } from '../../context/AppContext';
+import { useAppDispatch, useAppState } from '../../context/AppContext';
 import { compressImage } from '../../utils/imageCompressor';
 
 export default function UploadStep() {
+  const { isTestMode } = useAppState();
   const dispatch = useAppDispatch();
   const fileRef = useRef(null);
   
@@ -11,10 +12,10 @@ export default function UploadStep() {
   const [compressing, setCompressing] = useState(false);
 
   const handleFileSelect = async (e) => {
+    // ... existing logic ...
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    // Remaining slots
     const remaining = 3 - images.length;
     if (remaining <= 0) {
       setError('Maksimum 3 fotoğraf yükleyebilirsin');
@@ -43,12 +44,23 @@ export default function UploadStep() {
       setCompressing(false);
     }
 
-    // Reset input for same file selection
     if (fileRef.current) fileRef.current.value = '';
   };
 
   const removeImage = (index) => {
     setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUseDemo = () => {
+    const demoImage = {
+      base64: 'demo', 
+      mimeType: 'image/jpeg',
+      dataUrl: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=200&auto=format&fit=crop'
+    };
+    dispatch({
+      type: 'SET_IMAGES',
+      payload: [demoImage],
+    });
   };
 
   const handleSubmit = () => {
@@ -103,12 +115,21 @@ export default function UploadStep() {
 
       {error && <p className="step-error">{error}</p>}
 
-      {images.length > 0 && (
-        <button className="step-button pulse" onClick={handleSubmit}>
-          {images.length} Fotoğrafla Analize Başla
-          <span className="material-symbols-outlined">flare</span>
-        </button>
-      )}
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
+        {images.length > 0 && (
+          <button className="step-button pulse" onClick={handleSubmit}>
+            {images.length} Fotoğrafla Analize Başla
+            <span className="material-symbols-outlined">flare</span>
+          </button>
+        )}
+
+        {isTestMode && images.length === 0 && (
+          <button className="step-button secondary fade-in" onClick={handleUseDemo}>
+            <span className="material-symbols-outlined">auto_awesome</span>
+            Demo Fotoğraf Kullan (Hızlı Test)
+          </button>
+        )}
+      </div>
 
       {images.length === 0 && !compressing && (
         <div className="upload-zone" onClick={() => fileRef.current?.click()} style={{ marginTop: '0' }}>

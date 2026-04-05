@@ -108,9 +108,8 @@ export default function HistoryDetailPage() {
         // Handle BOTH synthesis and standalone tarot
         const isStandalone = fortune.type === 'tarot';
         const cardSource = fortune.tarotCards || [];
-        const resultText = isStandalone ? fortune.tarotResult?.analysis : fortune.synthesisResult;
         
-        if (!cardSource.length && !resultText) return (
+        if (!cardSource.length && !fortune.synthesisResult && !fortune.tarotResult) return (
           <div className="empty-state">
             <span className="material-symbols-outlined">style</span>
             <p>Bu falda Tarot verisi bulunmuyor.</p>
@@ -131,33 +130,55 @@ export default function HistoryDetailPage() {
             
             <div className="synthesis-cards-mini">
               {cardSource.map((card, i) => (
-                <div key={i} className="mini-card" onClick={() => setZoomedImage(card.img)}>
+                <div key={i} className={card?.img ? "mini-card" : "mini-card tarot-card-modern"} onClick={() => card?.img && setZoomedImage(card.img)}>
                   {card?.img ? (
                     <img src={card.img} alt={card?.nameTr} />
                   ) : (
-                    <span className="material-symbols-outlined">style</span>
+                    <div className="tarot-card-shimmer"></div>
                   )}
                   <p className="card-mini-name">{card?.nameTr}</p>
                 </div>
               ))}
             </div>
 
-            <div className="result-text-container-mini">
-               <p className="result-text">{typeof resultText === 'string' ? resultText : 'Yorum detaylandırılıyor...'}</p>
-            </div>
+            {isStandalone ? (
+              <div className="tarot-history-details">
+                {[
+                  { id: 'past', label: 'Geçmiş', icon: 'history' },
+                  { id: 'present', label: 'Şu An', icon: 'visibility' },
+                  { id: 'future', label: 'Gelecek', icon: 'auto_awesome' }
+                ].map(slot => (
+                  <div key={slot.id} className="history-detail-card">
+                    <div className="detail-card-header">
+                      <span className="material-symbols-outlined">{slot.icon}</span>
+                      <h4>{slot.label}</h4>
+                    </div>
+                    <p className="result-text">{fortune.tarotResult?.[slot.id] || "Kâhin bu bölüme sessiz kalmış."}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="result-text-container-mini">
+                 <p className="result-text">{typeof fortune.synthesisResult === 'string' ? fortune.synthesisResult : 'Yorum detaylandırılıyor...'}</p>
+              </div>
+            )}
 
             {isStandalone && fortune.tarotResult?.seal && (
               <div className="emerald-seal-mini" style={{ 
                 marginTop: '32px', 
                 padding: '24px', 
-                background: 'rgba(80, 200, 120, 0.05)', 
+                background: 'rgba(80, 200, 120, 0.11)', 
                 border: '1px solid #50C878', 
                 borderRadius: '16px',
-                textAlign: 'center'
+                textAlign: 'center',
+                boxShadow: '0 0 20px rgba(80, 200, 120, 0.1)',
+                position: 'relative',
+                overflow: 'hidden'
               }}>
+                <div className="emerald-seal-aura"></div>
                 <span className="material-symbols-outlined" style={{ color: '#50C878', marginBottom: '8px' }}>flare</span>
-                <h4 style={{ color: '#50C878', fontSize: '14px', marginBottom: '12px', textTransform: 'uppercase' }}>Zümrüt Mührü</h4>
-                <p style={{ fontSize: '13px', color: '#50C878', opacity: 0.9 }}>{fortune.tarotResult.seal}</p>
+                <h4 style={{ color: '#50C878', fontSize: '14px', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Zümrüt Mührü</h4>
+                <p style={{ fontSize: '14px', color: 'var(--text-primary)', fontStyle: 'italic' }}>{fortune.tarotResult.seal}</p>
               </div>
             )}
           </div>

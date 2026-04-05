@@ -1,12 +1,12 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
-import { getApiKey, getUserProfile, getHistory, setApiKey as saveApiKey, setUserProfile, addToHistory as saveToHistory, saveCurrentFortune, getCurrentFortune, clearCurrentFortune, migrateStorage, clearHistory } from '../services/storage';
+import { getApiKey, getUserProfile, getHistory, setApiKey as saveApiKey, setUserProfile, addToHistory as saveToHistory, saveCurrentFortune, getCurrentFortune, clearCurrentFortune, migrateStorage, clearHistory, setTestMode, getTestMode } from '../services/storage';
 
 const AppContext = createContext(null);
 const AppDispatchContext = createContext(null);
 
 const initialState = {
-  apiKey: '',
-  user: null, 
+  apiKey: getApiKey(),
+  user: getUserProfile(), 
   currentFortune: {
     coffeeStep: 'intent',
     tarotStep: 'intent',
@@ -26,10 +26,12 @@ const initialState = {
     tarotAnimated: false,
   },
   history: [],
-  showApiKeyModal: false,
-  showOnboarding: false, // Will be set to true in mount effect if user is null
+  showApiKeyModal: !getApiKey(),
+  showOnboarding: !getUserProfile(), 
   isLoading: false,
   isHydrating: true, // App starts in hydrating state
+  showWelcome: true, // Show splash screen on first mount
+  isTestMode: false, // Force false for production
   error: null,
 };
 
@@ -60,6 +62,8 @@ function appReducer(state, action) {
 
     case 'TOGGLE_API_KEY_MODAL':
       return { ...state, showApiKeyModal: !state.showApiKeyModal };
+
+
 
     case 'SHOW_API_KEY_MODAL':
       return { ...state, showApiKeyModal: action.payload };
@@ -230,6 +234,9 @@ function appReducer(state, action) {
     case 'SET_HYDRATING':
       return { ...state, isHydrating: !!action.payload };
 
+    case 'HIDE_WELCOME':
+      return { ...state, showWelcome: false };
+
     case 'SET_ERROR':
       return { ...state, error: action.payload, isLoading: false };
 
@@ -241,19 +248,21 @@ function appReducer(state, action) {
 
     case 'SAVE_TO_HISTORY': {
       const type = action.payload?.type || 'coffee';
+      const isCoffee = type === 'coffee';
+      
       const historyEntry = {
         type,
-        intent: type === 'coffee' ? state.currentFortune.intent : state.currentFortune.tarotIntent?.intent,
-        images: type === 'coffee' ? state.currentFortune.images : [],
-        coffeeResult: type === 'coffee' ? state.currentFortune.coffeeResult : null,
-        tarotCards: type === 'coffee' ? state.currentFortune.selectedTarotCards : state.currentFortune.selectedTarotCards,
-        synthesisResult: type === 'coffee' ? state.currentFortune.synthesisResult : null,
-        tarotResult: type === 'tarot' ? state.currentFortune.tarotResult : null,
+        intent: isCoffee ? state.currentFortune.intent : (state.currentFortune.tarotIntent?.intent || 'Genel Niyet'),
+        images: isCoffee ? state.currentFortune.images : [],
+        coffeeResult: isCoffee ? state.currentFortune.coffeeResult : null,
+        tarotCards: state.currentFortune.selectedTarotCards || [],
+        synthesisResult: isCoffee ? state.currentFortune.synthesisResult : null,
+        tarotResult: !isCoffee ? state.currentFortune.tarotResult : null,
         id: Date.now().toString(),
         date: new Date().toISOString()
       };
-      saveToHistory(historyEntry); // fire and forget async
-      // Limit total history to 5 items
+      
+      saveToHistory(historyEntry); 
       const newHistory = [historyEntry, ...state.history].slice(0, 5);
       return { ...state, history: newHistory };
     }
@@ -273,25 +282,19 @@ export function AppProvider({ children }) {
       try {
         await migrateStorage();
 
-        const apiKey = getApiKey();
-        const user = getUserProfile();
         const history = await getHistory();
         const savedFortune = await getCurrentFortune();
         
         if (!mounted) return;
 
-        if (apiKey) dispatch({ type: 'SET_API_KEY', payload: apiKey });
-        if (user) dispatch({ type: 'SET_USER', payload: user });
-        
-        // Initial load: Only take the last 5 as requested
+        // Sync items are already in initialState, but we can re-verify if needed
+        // Async items (history/fortune) need to be loaded here
         if (history && history.length) dispatch({ type: 'SET_HISTORY', payload: history.slice(0, 5) });
         if (savedFortune) dispatch({ type: 'RESTORE_FORTUNE', payload: savedFortune });
         
-        // --- TEMPORARY NUKE: Clear history once for the user ---
-        // await clearHistory();
-        // dispatch({ type: 'CLEAR_HISTORY' });
-        // --- End of Nuke ---
-
+        // Modal logic
+        const apiKey = getApiKey();
+        const user = getUserProfile();
         if (!apiKey) dispatch({ type: 'SHOW_API_KEY_MODAL', payload: true });
         if (!user) dispatch({ type: 'SHOW_ONBOARDING', payload: true });
       } catch (err) {
@@ -305,7 +308,7 @@ export function AppProvider({ children }) {
     return () => { mounted = false; };
   }, []);
 
-  // Persistence effect
+  // Persistence effect for current fortune
   useEffect(() => {
     if (state && state.currentFortune) {
       const { coffeeStep, tarotStep, intent } = state.currentFortune;

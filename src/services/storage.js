@@ -11,6 +11,7 @@ const KEYS = {
   HISTORY: 'cassiopeia_history',
   ONBOARDING_DONE: 'cassiopeia_onboarding_done',
   CURRENT_FORTUNE: 'cassiopeia_current_fortune',
+  TEST_MODE: 'cassiopeia_test_mode',
 };
 
 // Configure localforage
@@ -70,6 +71,15 @@ export function isOnboardingDone() {
 
 export function setOnboardingDone() {
   try { localStorage.setItem(KEYS.ONBOARDING_DONE, 'true'); } catch {}
+}
+
+// Test Mode (Mock API) - Disabled for production
+export function getTestMode() {
+  return false; // Force false for production
+}
+
+export function setTestMode(val) {
+  // No-op for production to prevent accidental toggling
 }
 
 // Async Storage for History and Current Fortune 

@@ -4,10 +4,11 @@ import { useAppState, useAppDispatch } from '../context/AppContext';
 import { ZODIAC_SIGNS, TAROT_DECK } from '../utils/constants';
 import { callGemini } from '../services/gemini';
 import { buildCombinedDailyPrompt } from '../utils/prompts';
+import { getMockDailyContent } from '../services/mockData';
 import ImageModal from '../components/ImageModal';
 
 export default function HomePage() {
-  const { user, apiKey } = useAppState();
+  const { user, apiKey, isTestMode } = useAppState();
   const navigate = useNavigate();
   const [dailyCard, setDailyCard] = useState(null);
   const [dailyCardReading, setDailyCardReading] = useState('');
@@ -76,11 +77,11 @@ export default function HomePage() {
     }
 
     // 3. Fetch mystical content with caching
-    if (apiKey) {
+    if (apiKey || isTestMode) {
       const cachedCard = localStorage.getItem(`daily_card_reading_${seedString}`);
       const cachedHoroscope = localStorage.getItem(`daily_horoscope_${seedString}`);
 
-      if (cachedCard && cachedHoroscope) {
+      if (cachedCard && cachedHoroscope && !isTestMode) {
         setDailyCardReading(cachedCard);
         setHoroscope(cachedHoroscope);
         setLoading(false);
@@ -92,24 +93,32 @@ export default function HomePage() {
     }
 
     return () => controller.abort();
-  }, [apiKey, user, userZodiac]);
+  }, [apiKey, user, userZodiac, isTestMode]);
 
   async function loadDailyContent(card, zodiac, todayString, signal) {
-    if (!apiKey || !zodiac || !card) return;
+    if ((!apiKey && !isTestMode) || !zodiac || !card) return;
     setLoading(true);
     try {
-      // Combined call for Horoscope and Tarot (Saves 50% cost!)
-      const prompt = buildCombinedDailyPrompt(zodiac?.name || '', card?.nameTr || '', card?.meaning || '');
-      const result = await callGemini(apiKey, prompt, { jsonMode: true, signal });
-      
-      const { horoscope: h, tarot_reading: t } = result;
+      let data;
+      if (isTestMode) {
+        // Simüle bekleme (0.8 sn)
+        await new Promise(resolve => setTimeout(resolve, 800));
+        data = getMockDailyContent();
+      } else {
+        const prompt = buildCombinedDailyPrompt(zodiac?.name || '', card?.nameTr || '', card?.meaning || '');
+        const result = await callGemini(apiKey, prompt, { jsonMode: true, signal });
+        data = result;
+      }
+
+      const { horoscope: h, tarot_reading: t } = data;
       
       setDailyCardReading(t);
       setHoroscope(h);
       
-      // Save both to localStorage using consistent keys
-      localStorage.setItem(`daily_card_reading_${todayString}`, t);
-      localStorage.setItem(`daily_horoscope_${todayString}`, h);
+      if (!isTestMode) {
+        localStorage.setItem(`daily_card_reading_${todayString}`, t);
+        localStorage.setItem(`daily_horoscope_${todayString}`, h);
+      }
     } catch (err) {
       if (err.name === 'AbortError') return;
       console.error('İçerik yüklenirken hata oluştu:', err);
@@ -118,17 +127,6 @@ export default function HomePage() {
       if (!horoscope) setHoroscope(msg);
     }
     setLoading(false);
-  }
-
-  // Safety Guard: If user profile is not ready, show clean loading
-  if (!user || !userZodiac) {
-    return (
-      <div className="page home-page">
-        <div style={{ padding: '3rem', textAlign: 'center', opacity: 0.7 }}>
-          <p>Cassiopeia yükleniyor...</p>
-        </div>
-      </div>
-    );
   }
 
   return (

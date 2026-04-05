@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useAppState, useAppDispatch } from '../context/AppContext';
 
 function ApiKeyModal() {
-  const { showApiKeyModal, apiKey } = useAppState();
+  const { showApiKeyModal, apiKey, isTestMode } = useAppState();
   const dispatch = useAppDispatch();
   const [tempKey, setTempKey] = useState(apiKey || '');
 
-  if (!showApiKeyModal) return null;
+  if (!showApiKeyModal || isTestMode) return null;
 
   const handleSave = () => {
     const key = tempKey.trim();
@@ -30,7 +30,11 @@ function ApiKeyModal() {
         <p className="modal-desc" style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px', textAlign: 'center' }}>
           Yorumların mühürlenmesi için geçerli bir anahtar gereklidir.
         </p>
-        <button className="modal-button" onClick={handleSave}>Kaydet</button>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+          <button className="modal-button" onClick={handleSave}>Anahtarı Kaydet</button>
+        </div>
+
         {apiKey && (
           <button className="modal-link" onClick={() => dispatch({ type: 'SHOW_API_KEY_MODAL', payload: false })}>Kapat</button>
         )}

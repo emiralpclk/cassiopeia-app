@@ -2,11 +2,12 @@ import { useEffect, useState, useRef } from 'react';
 import { useAppState, useAppDispatch } from '../../context/AppContext';
 import { callGemini } from '../../services/gemini';
 import { buildTarotSynthesisPrompt } from '../../utils/prompts';
+import { getMockSynthesisResult } from '../../services/mockData';
 import OracleLoading from '../../components/OracleLoading';
 import Typewriter from '../../components/Typewriter';
 
 function SynthesisResult() {
-  const { currentFortune, apiKey, user } = useAppState();
+  const { currentFortune, apiKey, user, isTestMode } = useAppState();
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
   const hasRequested = useRef(false);
@@ -18,7 +19,6 @@ function SynthesisResult() {
       runSynthesis();
     } else if (currentFortune?.synthesisResult) {
       setLoading(false);
-      // Mark as animated if we already have the result (e.g. coming back)
       if (!currentFortune.synthesisAnimated) {
         dispatch({ type: 'MARK_SYNTHESIS_ANIMATED' });
       }
@@ -29,7 +29,6 @@ function SynthesisResult() {
     };
   }, []);
 
-  // Also mark as animated when we successfully get a new result
   useEffect(() => {
     if (currentFortune?.synthesisResult && !currentFortune?.synthesisAnimated) {
       dispatch({ type: 'MARK_SYNTHESIS_ANIMATED' });
@@ -37,24 +36,32 @@ function SynthesisResult() {
   }, [currentFortune?.synthesisResult]);
 
   async function runSynthesis() {
-    if (!apiKey) return;
+    // In test mode, we don't need apiKey
+    if (!apiKey && !isTestMode) return;
     setLoading(true);
     try {
-      const prompt = buildTarotSynthesisPrompt(
-        currentFortune?.coffeeResult?.general || '',
-        currentFortune?.intent || '',
-        user?.zodiac || '',
-        user?.ageRange || '',
-        user?.relationshipStatus || '',
-        currentFortune?.selectedTarotCards?.[0] || null,
-        currentFortune?.selectedTarotCards?.[1] || null,
-        currentFortune?.selectedTarotCards?.[2] || null
-      );
+      if (isTestMode) {
+        // Mock delay (1 second)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const result = getMockSynthesisResult();
+        dispatch({ type: 'SET_SYNTHESIS_RESULT', payload: result });
+      } else {
+        const prompt = buildTarotSynthesisPrompt(
+          currentFortune?.coffeeResult?.general || '',
+          currentFortune?.intent || '',
+          user?.zodiac || '',
+          user?.ageRange || '',
+          user?.relationshipStatus || '',
+          currentFortune?.selectedTarotCards?.[0] || null,
+          currentFortune?.selectedTarotCards?.[1] || null,
+          currentFortune?.selectedTarotCards?.[2] || null
+        );
 
-      if (!prompt) throw new Error('Sentez promptu hazırlanamadı.');
+        if (!prompt) throw new Error('Sentez promptu hazırlanamadı.');
 
-      const result = await callGemini(apiKey, prompt);
-      dispatch({ type: 'SET_SYNTHESIS_RESULT', payload: result });
+        const result = await callGemini(apiKey, prompt);
+        dispatch({ type: 'SET_SYNTHESIS_RESULT', payload: result });
+      }
     } catch (err) {
       console.error('Sentez hatası:', err);
       dispatch({ type: 'SET_ERROR', payload: 'Sentez oluşturulamadı.' });
@@ -66,7 +73,6 @@ function SynthesisResult() {
     return <OracleLoading message="Cassiopeia yıldızları birleştiriyor..." />;
   }
 
-  // Safety guard if still no result or still loading
   if (!currentFortune?.synthesisResult) {
     return (
       <div className="fortune-step synthesis-step" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>

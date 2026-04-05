@@ -3,7 +3,7 @@ import { useAppState, useAppDispatch } from '../context/AppContext';
 import { ZODIAC_SIGNS, AGE_RANGES, RELATIONSHIP_STATUSES } from '../utils/constants';
 
 export default function ProfilePage() {
-  const { user, apiKey, history } = useAppState();
+  const { user, apiKey, history, isTestMode } = useAppState();
   const dispatch = useAppDispatch();
   const [showApiInput, setShowApiInput] = useState(false);
   const [newKey, setNewKey] = useState(apiKey || '');
@@ -83,6 +83,8 @@ export default function ProfilePage() {
           <span className="material-symbols-outlined">chevron_right</span>
         </button>
       </div>
+
+
 
       <div className="profile-footer">
         <p>Cassiopeia v1.0</p>

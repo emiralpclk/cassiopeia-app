@@ -4,6 +4,7 @@ import BottomNav from './components/BottomNav';
 import ApiKeyModal from './components/ApiKeyModal';
 import OnboardingFlow from './components/OnboardingFlow';
 import OracleLoading from './components/OracleLoading';
+import WelcomeScreen from './components/WelcomeScreen';
 import HomePage from './pages/HomePage';
 import FortunesPage from './pages/FortunesPage';
 import CoffeeFortunePage from './pages/CoffeeFortunePage';
@@ -14,14 +15,10 @@ import DiscoverPage from './pages/DiscoverPage';
 import ProfilePage from './pages/ProfilePage';
 
 export default function AppContent() {
-  const { showOnboarding, showApiKeyModal, error, isHydrating } = useAppState();
+  const { showOnboarding, showApiKeyModal, showWelcome, error, isHydrating, isTestMode } = useAppState();
 
-  if (isHydrating) {
-    return (
-      <div className="app-shell" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg)' }}>
-        <OracleLoading message="Cassiopeia Uyanıyor..." />
-      </div>
-    );
+  if (showWelcome || isHydrating) {
+    return <WelcomeScreen />;
   }
 
   if (error && !showApiKeyModal && !showOnboarding) {
@@ -35,25 +32,30 @@ export default function AppContent() {
     );
   }
 
+  const showMainContent = !showApiKeyModal && !showOnboarding;
+
   return (
     <div className="app-shell">
       <ApiKeyModal />
-      {showOnboarding && !showApiKeyModal && <OnboardingFlow />}
+      {showOnboarding && (!showApiKeyModal || isTestMode) && <OnboardingFlow />}
 
-      <main className="app-main">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/fallar" element={<FortunesPage />} />
-          <Route path="/fallar/kahve" element={<CoffeeFortunePage />} />
-          <Route path="/fallar/tarot" element={<TarotPage />} />
-          <Route path="/gecmis" element={<HistoryPage />} />
-          <Route path="/gecmis/:index" element={<HistoryDetailPage />} />
-          <Route path="/kesfet" element={<DiscoverPage />} />
-          <Route path="/profil" element={<ProfilePage />} />
-        </Routes>
-      </main>
-
-      <BottomNav />
+      {showMainContent && (
+        <>
+          <main className="app-main">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/fallar" element={<FortunesPage />} />
+              <Route path="/fallar/kahve" element={<CoffeeFortunePage />} />
+              <Route path="/fallar/tarot" element={<TarotPage />} />
+              <Route path="/gecmis" element={<HistoryPage />} />
+              <Route path="/gecmis/:index" element={<HistoryDetailPage />} />
+              <Route path="/kesfet" element={<DiscoverPage />} />
+              <Route path="/profil" element={<ProfilePage />} />
+            </Routes>
+          </main>
+          <BottomNav />
+        </>
+      )}
     </div>
   );
 }

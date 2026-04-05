@@ -6,6 +6,7 @@ import {
   buildCombinedDetailsPrompt,
   buildCoffeeSymbolsPrompt,
 } from '../../utils/prompts';
+import { getMockCoffeeResult, getMockCoffeeDetails } from '../../services/mockData';
 import TabBar from '../../components/TabBar';
 import OracleLoading from '../../components/OracleLoading';
 import ImageModal from '../../components/ImageModal';
@@ -14,7 +15,7 @@ import SymbolsOverlay from '../../components/SymbolsOverlay';
 import Typewriter from '../../components/Typewriter';
 
 function ResultsPage() {
-  const { currentFortune, apiKey, user } = useAppState();
+  const { currentFortune, apiKey, user, isTestMode } = useAppState();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
@@ -121,9 +122,10 @@ function ResultsPage() {
         setDetailsRevealStep('shuffling');
         const needsLoading = !currentFortune?.tabData?.details;
         if (!needsLoading) {
+          const waitTime = isTestMode ? 1000 : 10000;
           setTimeout(() => {
             setDetailsRevealStep('ready');
-          }, 10000);
+          }, waitTime);
         }
       }
     }
@@ -133,7 +135,7 @@ function ResultsPage() {
                          (tabId === 'details' && !currentFortune?.tabData?.details);
                          
     if (tabId === 'tarot') return; // Tarot specific logic is handled in render
-    if (!apiKey || !needsLoading || tabLoading[tabId]) return;
+    if ((!apiKey && !isTestMode) || !needsLoading || tabLoading[tabId]) return;
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -144,24 +146,39 @@ function ResultsPage() {
     setTabLoading((prev) => ({ ...prev, [tabId]: true }));
 
     try {
-      const zodiac = user?.zodiac || '';
-      const relationship = user?.relationshipStatus || '';
-      const intent = currentFortune?.intent || '';
-      
       let result;
+      if (isTestMode) {
+        // Quick mock delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+        if (tabId === 'overview') {
+          const mock = getMockCoffeeResult();
+          result = { semboller: mock.semboller };
+        } else {
+          result = getMockCoffeeDetails();
+        }
+      } else {
+        const zodiac = user?.zodiac || '';
+        const relationship = user?.relationshipStatus || '';
+        const intent = currentFortune?.intent || '';
+        
+        if (tabId === 'overview') {
+          result = await callGemini(apiKey, buildCoffeeSymbolsPrompt(), {
+            images: currentFortune?.images,
+            jsonMode: true,
+            signal,
+          });
+        } else {
+          result = await callGemini(apiKey, buildCombinedDetailsPrompt(intent, zodiac, relationship), {
+            images: currentFortune?.images,
+            jsonMode: true,
+            signal,
+          });
+        }
+      }
+
       if (tabId === 'overview') {
-        result = await callGemini(apiKey, buildCoffeeSymbolsPrompt(), {
-          images: currentFortune?.images,
-          jsonMode: true,
-          signal,
-        });
         dispatch({ type: 'SET_TAB_DATA', payload: { symbols: result } });
       } else {
-        result = await callGemini(apiKey, buildCombinedDetailsPrompt(intent, zodiac, relationship), {
-          images: currentFortune?.images,
-          jsonMode: true,
-          signal,
-        });
         dispatch({ type: 'SET_TAB_DATA', payload: { details: result } });
       }
     } catch (err) {
@@ -173,9 +190,10 @@ function ResultsPage() {
 
     // AFTER LOAD: Start the 10s cinematic bridge timer if we just loaded details AND it's not already ready
     if (tabId === 'details' && detailsRevealStep !== 'ready') {
+      const waitTime = isTestMode ? 1000 : 10000;
       setTimeout(() => {
         setDetailsRevealStep('ready');
-      }, 10000);
+      }, waitTime);
     }
   };
 
